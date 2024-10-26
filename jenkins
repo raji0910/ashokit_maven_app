@@ -7,7 +7,7 @@ pipeline{
         stage('clone repo') {
             steps {
                 git branch: 'main',
-                url: 'https://github.com/kpradeep710/maven-web-app.git'
+                url: 'https://github.com/kpradeep710/ashokit_maven_app.git'
             }
         }
 
