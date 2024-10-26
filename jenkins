@@ -16,13 +16,13 @@ pipeline {
         stage('Build') {
             steps {
                 echo "Build the Maven project"
-                sh 'mvn clean package'
+                bat 'mvn clean package'
             }
         }
         stage('Deploy') {
             steps {
                 echo "Connected to EC2 instance and ready to deploy"
-                sh '''
+                bat '''
                     scp -i /c/Documents/k.pradeepkumar.pem target/01-Maven-App-1.0-SNAPSHOT.jar ec2-user@13.232.61.0:/home/ec2-user/
                 '''
             }
