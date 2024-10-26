@@ -1,28 +1,26 @@
-pipeline{
+pipeline {
     agent any
     environment {
         PATH = "$PATH:/C:/Program Files/apache-maven-3.9.3-bin/apache-maven-3.9.3/bin"
     }
- stages {
-        stage('clone repo') {
+    stages {
+        stage('Clone Repo') {
             steps {
                 git branch: 'main',
-                url: 'https://github.com/kpradeep710/ashokit_maven_app.git'
+                    url: 'https://github.com/kpradeep710/ashokit_maven_app.git'
             }
         }
-
         stage('Build') {
             steps {
-                echo "build the maven project"
+                echo "Build the Maven project"
                 sh 'mvn clean package'
             }
         }
-
         stage('Deploy') {
             steps {
-                echo "connected to ec2-instance and ready to deploy"
+                echo "Connected to EC2 instance and ready to deploy"
                 sh '''
-                scp -i C:/Documents/k.pradeepkumar.pem target/01-Maven-App-1.0-SNAPSHOT.jar ec2-user@13.232.61.0:/home/ec2-user/
+                    scp -i /c/Documents/k.pradeepkumar.pem target/01-Maven-App-1.0-SNAPSHOT.jar ec2-user@13.232.61.0:/home/ec2-user/
                 '''
             }
         }
