@@ -8,6 +8,7 @@ pipeline {
             steps {
                 git branch: 'main',
                     url: 'https://github.com/kpradeep710/ashokit_maven_app.git'
+                    credentialsId: 'github'
             }
         }
         stage('Build') {
