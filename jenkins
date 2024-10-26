@@ -6,11 +6,7 @@ pipeline {
     stages {
         stage('Clone Repo') {
             steps {
-                git(
-                    branch: 'main',
-                    url: 'https://github.com/kpradeep710/ashokit_maven_app.git',
-                    credentialsId: 'dc287774-025f-45ed-8f9d-97aed8d28b3c'
-                )
+               git branch: 'main', credentialsId: 'dc287774-025f-45ed-8f9d-97aed8d28b3c', url: 'https://github.com/kpradeep710/ashokit_maven_app.git'
             }
         }
         stage('Build') {
