@@ -6,7 +6,8 @@ pipeline {
     stages {
         stage('Git Clone') {
             steps {
-               git credentialsId: 'dc287774-025f-45ed-8f9d-97aed28d8b3c', url: 'https://github.com/kpradeep710/ashokit_maven_app.git'
+               git branch: 'main'
+               url: 'https://github.com/kpradeep710/ashokit_maven_app.git'
             }
         }
         stage('Build') {
