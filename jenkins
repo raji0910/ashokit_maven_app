@@ -4,7 +4,7 @@ pipeline {
         PATH = "$PATH:/C:/Program Files/apache-maven-3.9.3-bin/apache-maven-3.9.3/bin"
     }
     stages {
-        stage('Git Clone') {
+        stage('clone repo') {
             steps {
                git branch: 'main'
                url: 'https://github.com/kpradeep710/ashokit_maven_app.git'
