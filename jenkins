@@ -4,9 +4,9 @@ pipeline {
         PATH = "$PATH:/C:/Program Files/apache-maven-3.9.3-bin/apache-maven-3.9.3/bin"
     }
     stages {
-        stage('Clone Repo') {
+        stage('Git Clone') {
             steps {
-               git branch: 'main', credentialsId: 'dc287774-025f-45ed-8f9d-97aed8d28b3c', url: 'https://github.com/kpradeep710/ashokit_maven_app.git'
+               git credentialsId: 'dc287774-025f-45ed-8f9d-97aed28d8b3c', url: 'https://github.com/kpradeep710/ashokit_maven_app.git'
             }
         }
         stage('Build') {
@@ -19,7 +19,7 @@ pipeline {
             steps {
                 echo "Connected to EC2 instance and ready to deploy"
                 bat '''
-                    scp -i /c/Documents/k.pradeepkumar.pem target/01-Maven-App-1.0-SNAPSHOT.jar ec2-user@13.232.61.0:/home/ec2-user/
+                    scp -i /c/Documents/k.pradeepkumar.pem target/01-Maven-App-1.0-SNAPSHOT.jar ec2-user@13.234.78.133:/home/ec2-user/
                 '''
             }
         }
