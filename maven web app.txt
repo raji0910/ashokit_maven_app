@@ -1,0 +1,375 @@
+
+CONTEXT - IT IS ABOUT CLONE FROM GITREPO AND BUILD A TOMACAT APPICATION USING MAVEN 
+AND AUTOMATE THE PROCESS USING JENKINS AND BUILD THE DOCKER IMAGE AND DEPLOY IN KUBERNETES.
+
+
+diagram of pipeline - 
+
+clone from github ----------build using maven --------build docker image ----------deployment in k8s 
+                                |                        |                              |
+                                |                        |                              |
+                                |                        |                              |
+                              -----------------------------------------------------------------------------------
+                                             JENKINS FOR AUTOMATION AND INTEGRATED WITH MAVEN,dOCKER AND K8S 
+                             -------------------------------------------------------------------------------------- 
+
+
+
+steps include ---- 
+
+---------------------------------------------
+installations of jenkins,java
+---------------------------------------------
+step 1 - create EC2 instance named jenkins CI server with t2.medium and ubuntu(CI server) and security group(create SG)
+
+step 2 - port - 8080 ,type - CUSTOM TCP, and anywhere IPV4 in security group(check which SG connected to created EC2 instance and edit SG)
+
+step 3 -  install java 
+
+sudo apt update
+sudo apt install fontconfig openjdk-17-jre
+(#to 2 lines execute cheyii
+and check with this version) 
+java -version
+
+step 4 - to install jenkins 
+
+sudo wget -O /usr/share/keyrings/jenkins-keyring.asc \
+  https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
+echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] \
+  https://pkg.jenkins.io/debian-stable binary/ | sudo tee \
+  /etc/apt/sources.list.d/jenkins.list > /dev/null
+
+sudo apt-get update
+
+sudo apt-get install jenkins
+
+ # to start jenkins 
+sudo systemctl enable jenkins
+sudo systemctl start jenkins
+
+ # to verify jenkins 
+sudo systemctl status jenkins
+( should display active(running))
+
+step 5 - paste the public of created EC2 instance and paste with with port 8080 
+in chrome enter as "http://<publicip of created Ec2 instance:8080
+
+step 6 - u will get an URL 
+          sudo cat /var/lib/jenkins/secrets/initialAdminPassword
+
+step 7 - output of step5 is password paste in URL 
+
+step 8 - install suggested jenkins and create first admin user 
+(remember version and URL of jenkins created) 
+
+http://65.0.26.6:8080/
+Jenkins 2.504.3  - jenkins version and URL 
+----------------------------
+setup of maven
+----------------------------
+step 9 -inside jenkins>manage jenkins>tools>maven isntallations 
+9.1 - name - maven-3.96
+9.2 - click on install automatically 
+9.3 - apply 
+9.4 - click on save 
+
+-------------------------
+installation of docker in jenkins machine 
+-----------------------
+
+step 10 - installation of docker 
+
+curl -fsSL get.docker.com | /bin/bash 
+
+#add jenkins users to docker group 
+sudo usermod -aG docker jenkins
+
+# restart jenkins 
+sudo systemctl restart jenkins
+
+#check for docker version installation  
+sudo docker version
+
+------------------------------
+creation of ec2 host VM 
+------------------------------
+
+step 11 - 
+create ec2 instance again name - ec2 host VM ,type - ubuntu, type - t2.micro
+
+step 12- 
+for this create default VPC and then add 
+ enable securitygroup - 22 
+
+---------------------------------------------------
+installation of kubectl,CLI,eksctl in ec2 host VM 
+----------------------------------------------------
+
+step 12.1 - # this will create kubectl cluster
+
+
+step 12.2 - # install kubectl in ec2 host VM 
+
+curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.19.6/2021-01-05/bin/linux/amd64/kubectl
+
+chmod +x ./kubectl
+
+sudo mv ./kubectl /usr/local/bin
+
+kubectl version --short --client
+
+execute the above commands one after the another
+
+
+
+step 12.3 -  #install aws cli in ec2 host VM 
+
+sudo apt install unzip 
+
+cd 
+
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+
+unzip awscliv2.zip
+
+sudo ./aws/install
+
+aws --version
+
+execute 5 commands one after the another
+
+
+step 12.4 - # install eksctl in ec2 host VM 
+
+curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+
+#move from temp to userlocal bin folder
+sudo mv /tmp/eksctl /usr/local/bin
+
+#check version 
+eksctl version 
+
+-------------------------
+attach IAM role 
+-------------------------
+
+step 13 - create IAM role
+use case - EC2 
+attach permissions - IAMFullAcccess,VPCFullAcess,EC2FullAccess,CloudFormationAccess,AdminAccess
+name - eks management host 
+
+step 14 - jenkins CI server EC2 instance >click on security>modify IAM>attach IAM role we have created 
+
+step 15 - ec2 host VM ec2 instance>click on security>modify IAM role>attach IAM role we have created 
+
+
+---------------------------------------
+create EKS cluster in ec2 host VM 
+---------------------------------------
+step 20 - install eks cluster 
+
+eksctl create cluster --name rajiakella-cluster --region ap-south-1 --node-type t2.medium  --zones ap-south-1a,ap-south-1b
+
+(here name is ashokit-cluster 
+region is ap-south -1 here where i wanted to create cluster
+type - t2.medium
+zones are ap-south-1a and ap-south-1b 
+
+step 21 - check with 
+kuebctl get all 
+(use this command to check whether they are created or not)
+
+---------------------------------------------------
+installation of CLI and kubectl in jenkins server 
+---------------------------------------------------
+step 21.1 - # install CLI in jenkins server  
+
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+
+unzip awscliv2.zip
+
+sudo ./aws/install
+
+aws --version
+
+
+
+
+step 21.2 - # install kuebctl in jenkins server 
+
+curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.19.6/2021-01-05/bin/linux/amd64/kubectl
+
+chmod +x ./kubectl
+
+sudo mv ./kubectl /usr/local/bin
+
+kubectl version --short --client
+
+execute the above commands one after the another
+
+--------------------------------------------------
+update EKS cluster config file in jenkins server 
+---------------------------------------------------
+#by using this we can integrate jenkins and k8s -*************
+
+step 22 - UPDATE eks CLUSTER CONFIG FILE IN JENKINS CLUSTER - LIKE INSTALLATION OF K8S IN JENKINS 
+22.1 -  execute the command in EKS management host VM 
+
+22.2 - cat .kube/config
+e command execute in EKS management host VM 
+
+22.3 - go inside jenkins server VM 
+
+22.4 - cd /var/lib/jenkins 
+(execute this command in jenkins server VM)
+(the above command takes u inside /var/lib/jenkins)
+
+22.5 - sudo mkdir .kube 
+
+22.6 - sudo vi .kube/config 
+(inside kube directory will create one config file)
+
+22.7 - copy the data from 14.2 step and paste here 
+
+#check for kuebctl 
+22.8 - kubectl get nodes 
+
+
+
+	WORK WITH JENKINS BEGIN --- 
+============================================
+step 1 - creation of JENKINS JOB with git  - 
+===========================================
+1.1 - go into login of jenkins
+
+1.2- +newitem>enter item(ashokit_ci_job)>select pipeline>ok
+
+1.3- configure>go inside pipeline >script>Helloworld 
+
+1.4- change the scriptname into helloworld 
+and in the pipeline change the name of stage to stage('clone repo')
+
+1.5 - pipeline syntax click on it 
+(go to pipeline syntax>steps>git:git>paste the URL of github repo>branch-master>click on generate the script)
+https://github.com/ashokitschool/maven-web-app.git
+
+1.6 -one URL will be there generate the script anna kinda u will have one URL copy it 
+
+1.7 - paste that in pipeline change the echo"hello world" into paste the URL here from 15.6 st
+1.8 - apply and save 
+
+
+step 2 - check for git 
+
+2.1 - click on build now in jenkins now 
+click on console output (build now>click on #2 number it will take u to to display console output)
+(displays got success which means ur build with github got successful)
+
+
+
+
+
+--------------------------------------------------------------------
+step 3 - 
+step 1 - clone from github into jenkins is done
+now we should build using maven 
+---------------------------------------------------------------------
+
+step 3.1 - go inside created job(ashokit_job) 
+
+step 3.2 - click on configure>pipeline 
+
+step 3.3 - copy the stage and steps data and paste inside the pipeline only (like extend the data) 
+
+step 3.4 -  and in the pipeline change the name of stage to stage('maven build')
+
+step 3.5 - inside the steps sh 'mvn clean package'
+
+step 3.6 - apply and save 
+
+step 4 - CHECK FOR MAVEN 
+
+step 4.1 - click on build now in jenkins
+and also click on console output 
+(if u have any error click on there and go inside console output u will find where error occured)
+
+ 4.2 - # here we got error as maven not found but we gave maven as a tool 
+so in pipeline we should edit as 
+
+NOTE - 
+pipeline{ 
+	agent any
+	tools{
+          maven "mven.3.9.6"
+         }
+}
+
+we configured in pipeline we have done the above step because we didnt install maven in jenkins instead we added as global tool so 
+
+4.3 - click on build now and console output 
+
+----------------------------------
+docker with jenkins
+---------------------------------
+
+
+step 5 - stage('docker image'){
+steps{
+sh 'docker build  . -t ashokit/mavenwebapp'
+}
+}
+
+apply and save 
+
+step 5.1 - cd ~
+
+step 5.2 - sudo docker images 
+
+step 5.3 - click on build now and click on console output 
+
+step 5.4 - check for docker images 
+sudo docker images 
+(u willl find the imagename u created)
+
+
+----------------------------------------
+k8s with jenkins
+--------------------------------------
+step 6 - stage('k8s deploy'){
+steps{
+sh ' kubectl apply -f maven-web-app-deploy.yaml'
+}
+}
+
+
+apply and save
+
+step 6.1 - click on build now and click on console output 
+
+step 6.2 - check with 
+kubectl get pods
+kubectl get service
+
+
+step 7 - verify in aws>load balancer>
+step 6.1 - go inside the load balancer>DNS URL will be there 
+step 6.2 - go inside the security groups>check for port 80
+if not there create with port 80 
+step 6.3 - 
+paste the DNS URL in the webapp 
+
+-------------------------end----------------------------------------
+1.aws eks update-kubeconfig --region ap-south-1a --name rajiakella-cluster
+2.aws configure 
+
+
+->---------------------------------
+delete the resources in aws
+---------------------------------
+delete eks cluster
+cloudformation stack
+vpc 
+ebs volumens
+ec2 instance 
+
